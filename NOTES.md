@@ -1,38 +1,23 @@
-# Notes: my design log
+# TechCart Premium Implementation Notes
 
-**Live URL (Vercel):** _paste your deployed link here_
+**Live URL:** https://lab-tech-shop-snowy.vercel.app/
 
-> Fill in each section as you build. Keep it short and honest. We grade the
-> reasoning, not the word count. Delete these quote lines as you go.
+## Storage Approach
+I chose **localStorage** over sessionStorage because the requirement is that the premium status must survive page refreshes and even tab closures. localStorage persists until explicitly cleared, which perfectly matches the "pay once, remember forever" use case. The key used is `techcart-premium`.
 
-## 1. Route and storage choice
+## Server vs Client Components
+- **Server Components** (no `'use client'`): `layout.js`, `page.js` (home page), `data/products.js`. These components only render static data and have no interactivity. They run on the server, which improves performance and SEO.
+- **Client Components** (with `'use client'`): `app/premium/page.js`, `app/components/AdBanner.js`, `app/components/Navbar.js`. All of these need to read from or write to `localStorage`, which is browser‑only. Making them client components is mandatory. This separation keeps the overall app fast while enabling dynamic, stateful behavior where it is truly needed.
 
-- What route did you create for the payment page, and why that name/location?
-- Where did you store the "this user is premium" flag (`localStorage`,
-  `sessionStorage`, a cookie, something else)?
-- Why that one? What would have broken or felt wrong with the alternatives?
+## First‑Render / Hydration Strategy
+To avoid hydration mismatches between the server and the client, I used a `mounted` flag (`useState` + `useEffect`) in every component that reads `localStorage`. Initially, `isPremium` is set to `null` and the component renders nothing (or a neutral placeholder). After the component mounts, the flag triggers a re‑read of storage and updates the state accordingly. This ensures that the server‑rendered HTML always matches the first client render, preventing React hydration warnings.
 
-## 2. Server vs Client Components
+## What I Would Add with One More Hour
+- Implement a proper Luhn algorithm check for the card number to validate it more realistically.
+- Add support for multiple subscription plans (monthly / lifetime) and store the chosen plan.
+- Use `usePathname` from Next.js to highlight the active link in the navbar.
+- Persist a timestamp of the purchase and optionally implement an expiry mechanism for monthly plans.
+- Improve the "Cancel Premium" experience by adding a dedicated button in the navbar (not just on the premium page).
 
-- List the components/files you touched. For each, mark it **Server** or
-  **Client**.
-- Which ones were *forced* to be Client Components, and what forced them?
-  (state, event handlers, browser-only APIs like `localStorage`...)
-- What did you gain by keeping the rest on the server?
-
-## 3. The first-render problem
-
-- Did you hit a hydration mismatch or a "localStorage is not defined" error?
-  Describe what happened.
-- How did you fix it? (e.g. render a known state first, then read storage after
-  the component mounts.)
-- How do you know it's actually fixed? (what you checked in the console/UI)
-
-## 4. How the pieces connect
-
-- Walk through one full flow in 2-3 sentences: user submits the form, then what
-  happens, ending with the ads disappearing and staying gone after a refresh.
-
-## 5. If I had another hour
-
-- One thing you'd change, add, or clean up, and why.
+## Deployment
+The app is deployed on Vercel using the default settings. The remote image host (Unsplash) is already whitelisted in `next.config.mjs`, so product images load correctly both locally and in production.
