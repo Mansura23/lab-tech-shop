@@ -55,3 +55,12 @@ body {
 .ad-blink {
   animation: ad-blink 1.1s ease-in-out infinite;
 }
+.text-red-500 {
+  color: #ef4444;
+}
+.text-xs {
+  font-size: 0.75rem;
+}
+.mt-1 {
+  margin-top: 0.25rem;
+}
